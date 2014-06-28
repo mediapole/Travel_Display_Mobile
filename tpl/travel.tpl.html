@@ -1,0 +1,26 @@
+<script id="homeTpl" type="text/x-kendo-template">
+    <div id="company">
+        <img src="http://www.display-engine.com/client/clients/#= id_company#/logo.jpg" id="imgLogo">
+        <h1>#= name#</h1>
+        <div>#= adress#</div>
+        <div>#= postal_code# #= city#</div>
+    </div>
+</script>
+
+<script id="listTpl" type="text/x-kendo-template">
+    <a data-bind="click: selectProduct">
+    <img src="http://www.display-engine.com/client/clients/#= id_company#/medias/#= id#/photos/thumb/01.jpg" class="productThumb">
+    #= title#<br>
+    #= price# #= label['currency'][lang]#</a>
+</script>
+
+<script id="productTpl" type="text/x-kendo-template">
+    <div id="productScroll" data-role="scrollview" data-source="dataSource" data-template="scrollview-template"></div>
+    <div id="title" data-bind="text: selectedProduct.title"></div>
+    <div id="city" data-bind="text: selectedProduct.city"></div>
+    <span id="price" data-bind="text: selectedProduct.price"></span> #= label['currency'][lang]#
+    <hr>
+    <div id="summary" data-bind="text: selectedProduct.summary"></div>
+</script>
+
+<script id="productScrollTpl" type="text/x-kendo-template"><div data-role="page" class="photo" style="background-image: url(#= url#);">coucou</div></script>

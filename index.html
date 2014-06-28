@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="kendo/styles/kendo.mobile.all.min.css" rel="stylesheet" />
+    <script src="kendo/js/jquery.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2013.3.1119/js/kendo.mobile.min.js"></script>
+    
+    <script src="js/templateLoader.js"></script>
+    <script>
+        /*--Init--*/
+        var id_company = 117;
+        var companyType = "travel";
+        var lang = 'fr';
+        var id_form = 1;
+    </script>
+    <script src="js/ini-travel.js"></script>
+    <style>
+        /*-- Home --*/
+        #home { background-color:#fff; text-align:center }
+        #home .km-back, #list .km-back, #favorite .km-back  { visibility: hidden }
+        #home #imgLogo { max-width:250px; max-height:100px }
+        /*-- List --*/
+        #list .productThumb { float:left; width:70px; height:52px; border:2px solid #000; border-radius:5px; margin-right:10px }
+        /*-- Product --*/
+        #product { text-align: center }
+        #title, #city, #price { font-size:16px; font-weight:bold }
+        #summary { text-align: justify; margin: 0 auto; padding:0 5px; }
+        .photo {
+            margin: 0;
+            width:320px;
+            height: 240px;
+            display: inline-block;
+            -webkit-background-size: auto 100%;
+            background-size: auto 100%;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+    </style>
+    <script>
+        $(document).ready(function(){
+            /*--View init--*/
+            $("#home").attr('data-title',label['home'][lang]);
+            $("#list").attr('data-title',label['list'][lang]);
+            $("#product").attr('data-title',label['product'][lang]);
+            //$("#favorite").attr('data-title',label_favorite);
+            $("#back").html(label['back'][lang]);
+            
+            /*--Tabstrip init--*/            
+            $("#tab_home").html(label['home'][lang]);
+            $("#tab_list").html(label['list'][lang]);
+            //$("#tab_favorite").html(label['favorite'][lang]);
+            $("#tab_contact").html(label['contact'][lang]);
+            
+        });
+        /*--Company data--*/
+        var companyData = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "http://display-engine.com/index.php/json/company/"+id_company,
+                    dataType: "json"
+                }
+            }
+        });
+        /*--Product data--*/
+        var productModel = kendo.observable({
+            product: new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "http://display-engine.com/index.php/json/media/"+id_company+"/"+id_form,
+                    dataType: "json"
+                }
+            }
+        }),
+            selectedProduct: {},
+            selectProduct: function(p) {
+                productModel.set("selectedProduct", p.data);
+                
+                app.navigate("#product");
+                
+                var scrollview = $("#productScroll").data("kendoMobileScrollView");
+                
+                productImg = p.data.photo;
+
+                photo = new Array();
+                for (i=0; i<productImg.length; i++) {
+                    photo[i] = {"url": productImg[i].web.url};
+                }
+                console.log(photo);
+
+                scrollview.setDataSource(photo);
+                scrollview.refresh();
+            }
+        });
+        
+        templateLoader.load("tpl/"+companyType+".tpl.html");
+        
+        $(document).bind("TEMPLATE_LOADED", function(e, path) {
+            console.log('Templates loaded');            
+            
+            /*-- Render Home--*/
+            homeTpl = kendo.template($("#homeTpl").html());
+            companyData.bind("change", function() {
+                var company = this.data();
+                /*--Render homeTpl--*/
+                $("#home #content").html(kendo.render(homeTpl, this.view()));
+                /*--Tel action--*/
+                $("#tab_contact").on("click", function(){
+                    window.open("tel:"+company[0].phone);
+                });
+            });
+            companyData.read();
+            
+            /*-- Render Product--*/
+            productTpl = kendo.template($("#productTpl").html());
+            $("#product #content").append(productTpl);
+            //var scrollview = $("#productScroll").data("kendoMobileScrollView").setDataSource([{url: "http://display-engine.com/client/clients/117/medias/50/photos/web/01.jpg"}]);
+            
+        });
+        
+        productImg = [{url: "http://display-engine.com/client/clients/117/medias/50/photos/web/01.jpg"}];
+        
+        var dataSource = new kendo.data.DataSource({
+          data: productImg,
+          serverPaging: true,
+          pageSize: 30
+        });
+
+        /*function refresh(e) {
+          var scrollview = $("#productScroll").data("kendoMobileScrollView");
+          scrollview.setDataSource([ {url: "http://display-engine.com/client/clients/117/medias/50/photos/web/01.jpg"}, {url: "http://display-engine.com/client/clients/117/medias/50/photos/web/02.jpg"} ]);
+        }*/
+        
+        var app = new kendo.mobile.Application(document.body, { transition: "slide" });
+    </script>
+    
+</head>
+<body>
+    <!--Home-->
+    <div id="home" data-role="view" data-layout="main-layout" data-source="company"><div id="content"></div></div>
+    
+    <!--List-->
+    <div id="list" data-role="view" data-layout="main-layout" data-model="productModel">
+        <ul data-role="listview" data-bind="source: product" data-template="listTpl" data-style="inset"></ul>
+    </div>
+    
+    <!--Product-->
+    <div id="product" data-role="view" data-layout="main-layout" data-model="productModel" data-template="productTpl">
+        <div data-role="header">
+            <div data-role="navbar">
+                <span>Séjour</span>
+                <a id="back" data-align="left" data-role="backbutton">#= label['back'][lang]#</a>
+            </div>
+        </div>
+        <div id="content"></div>
+    </div>
+    
+    <script id="scrollview-template" type="text/x-kendo-template">
+        <div class="photo" style="background-image: url(#=url#);"></div>
+    </script>
+    
+    <!--Favorite-->
+    <!--<div id="favorite" data-role="view" data-layout="main-layout">
+        <ul data-role="listview" data-style="inset"></ul>
+    </div>-->
+    
+    <!--Layout-->
+    <div data-role="layout" data-id="main-layout">
+        <!--Header-->
+        
+        <!--Footer-->
+        <div data-role="footer">
+            <div data-role="tabstrip">
+                <a href="#home" id="tab_home" data-icon="home"></a>
+                <a href="#list" id="tab_list" data-icon="bookmarks"></a>
+                <!--<a href="#favorite" id="tab_favorite" data-icon="favorites"></a>-->
+                <a id="tab_contact" data-icon="phone"></a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
